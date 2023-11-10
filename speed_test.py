@@ -69,6 +69,9 @@ if __name__=="__main__":
     all_time = 0.
     ## main loop ##
     with torch.no_grad():
+        ## warm up ##
+        print("Warm up....")
+        warm_up_time = 0
         for ii, data_test in enumerate(test_loader):
             torch.cuda.ipc_collect()
             torch.cuda.empty_cache()
@@ -80,10 +83,27 @@ if __name__=="__main__":
             ## 输出可能需要根据不同的网络进行调整，请仔细看模型类 ##
             restored = model(input)
             restored = torch.clamp(restored, 0, 1)
+            # print(restored.shape)
+            torch.cuda.synchronize()
+            warm_up_time+=1
+            if warm_up_time == 10:
+                break
+        print("Inference begin")
+        for ii, data_test in enumerate(test_loader):
+            torch.cuda.ipc_collect()
+            torch.cuda.empty_cache()
+            input = data_test[0].cuda()
+
+            torch.cuda.synchronize()
+            start = time.time()
+            ## Output from your net maybe different from my net. Type: Tensor, Size: [B,C,H,W] ##
+            ## 输出可能需要根据不同的网络进行调整，请仔细看模型类 ##
+            restored = model(input)
             restored = torch.clamp(restored, 0, 1)
             # print(restored.shape)
             torch.cuda.synchronize()
             end = time.time()
+            print("inference time:{}".format(end-start))
             all_time += end - start
     print('average_time: ', all_time / len(test_dataset))
 
