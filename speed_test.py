@@ -47,12 +47,12 @@ if __name__=="__main__":
 
     ## Initialize your net, please edit it to suit for your net  ##
     ## 这里请导入需要的模型类 ##
-    from DeepRFT_MIMO import DeepRFT as mynet
+    from XXX import XXX as mynet
     model = mynet(num_res=8, inference=True)
 
     ## Load the checkpoints  ##
     checkpoint = torch.load(args.weights)
-    model.load_state_dict(checkpoint["state_dict"])
+    model.load_state_dict(checkpoint,strict=False)
 
     # utils.load_checkpoint_compress_doconv(model, args.weights) # 在deeprft中使用了do卷积，所以采用特殊加载方式。
 
@@ -73,7 +73,7 @@ if __name__=="__main__":
         print("Warm up....")
         warm_up_time = 0
         for ii, data_test in enumerate(test_loader):
-            torch.cuda.ipc_collect()
+            # torch.cuda.ipc_collect()
             torch.cuda.empty_cache()
             input = data_test[0].cuda()
 
@@ -82,7 +82,6 @@ if __name__=="__main__":
             ## Output from your net maybe different from my net. Type: Tensor, Size: [B,C,H,W] ##
             ## 输出可能需要根据不同的网络进行调整，请仔细看模型类 ##
             restored = model(input)
-            restored = torch.clamp(restored, 0, 1)
             # print(restored.shape)
             torch.cuda.synchronize()
             warm_up_time+=1
@@ -90,7 +89,7 @@ if __name__=="__main__":
                 break
         print("Inference begin")
         for ii, data_test in enumerate(test_loader):
-            torch.cuda.ipc_collect()
+            # torch.cuda.ipc_collect()
             torch.cuda.empty_cache()
             input = data_test[0].cuda()
 
@@ -99,7 +98,6 @@ if __name__=="__main__":
             ## Output from your net maybe different from my net. Type: Tensor, Size: [B,C,H,W] ##
             ## 输出可能需要根据不同的网络进行调整，请仔细看模型类 ##
             restored = model(input)
-            restored = torch.clamp(restored, 0, 1)
             # print(restored.shape)
             torch.cuda.synchronize()
             end = time.time()
